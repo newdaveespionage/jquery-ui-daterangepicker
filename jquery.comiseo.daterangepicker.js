@@ -54,7 +54,9 @@
 			onClose: null, // @deprecated callback that executes when the dropdown closes
 			onChange: null, // @deprecated callback that executes when the date range changes
 			onClear: null, // @deprecated callback that executes when the clear button is used
-			maxSelectionRange: null, // limit number of sequential dates that can be selected in a given selection operation
+			// maxSelectionRange: limit number of sequential dates that can be selected in a given selection operation
+			// null by default, no action, or integer greater than 0, number of days (including start date) to limit.
+			maxSelectionRange: null,
 			datepickerOptions: { // object containing datepicker options. See http://api.jqueryui.com/datepicker/#options
 				numberOfMonths: 3,
 //				showCurrentAtPos: 1 // bug; use maxDate instead
