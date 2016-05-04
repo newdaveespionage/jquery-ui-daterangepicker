@@ -249,13 +249,10 @@
 				range.end = range.start;
 				range.start = selectedDate;
 			} else {
+				range.end = selectedDate;
 				if(options.maxSelectionRange){
-					if(options.moment(selectedDate).add(options.maxSelectionRange, rangeType) > range.start ){
-						selectedDate = options.moment(range.start).add(rangeIncrement,rangeType).toDate();
-					}
 					$self.datepicker('option',options.datepickerOptions);
 				}
-				range.end = selectedDate;
 			}
 			if (options.datepickerOptions.hasOwnProperty('onSelect')) {
 				options.datepickerOptions.onSelect(dateText, instance);
