@@ -225,39 +225,36 @@
 		// called when a day is selected
 		function onSelectDay(dateText, instance) {
 			var dateFormat = options.datepickerOptions.dateFormat || $.datepicker._defaults.dateFormat,
-				selectedDate = $.datepicker.parseDate(dateFormat, dateText);
-
+				selectedDate = $.datepicker.parseDate(dateFormat, dateText),
+				rangeIncrement = 0;
+				if(options.maxSelectionRange){
+					rangeIncrement = +options.maxSelectionRange-1;
+				}
 			if (!range.start || range.end) { // start not set, or both already set
 				range.start = selectedDate;
 				range.end = null;
 				if(options.maxSelectionRange){
 					// make available dates limited to maxSelectionRange
 					$self.datepicker('option',{
-						maxDate: options.moment(selectedDate).add(options.maxSelectionRange,'days').toDate(),
-						minDate: options.moment(selectedDate).subtract(options.maxSelectionRange,'days').toDate()
+						minDate: options.moment(selectedDate).toDate(),
+						maxDate: options.moment(selectedDate).add(rangeIncrement,'days').toDate()
 					});
 				}
 			} else if (selectedDate < range.start) { // start set, but selected date is earlier
 				range.end = range.start;
 				if(options.maxSelectionRange){
 					if(options.moment(selectedDate).add(options.maxSelectionRange, 'days') < range.end ){
-						selectedDate = options.moment(range.end).subtract(options.maxSelectionRange,'days').toDate();
+						selectedDate = options.moment(range.end).subtract(rangeIncrement,'days').toDate();
 					}
-					$self.datepicker('option',{
-						maxDate: null,
-						minDate: null
-					});
+					$self.datepicker('option',options.datepickerOptions);
 				}
 				range.start = selectedDate;
 			} else {
 				if(options.maxSelectionRange){
 					if(options.moment(selectedDate).add(options.maxSelectionRange, 'days') > range.start ){
-						selectedDate = options.moment(range.start).add(options.maxSelectionRange,'days').toDate();
+						selectedDate = options.moment(range.start).add(rangeIncrement,'days').toDate();
 					}
-					$self.datepicker('option',{
-						maxDate: null,
-						minDate: null
-					});
+					$self.datepicker('option',options.datepickerOptions);
 				}
 				range.end = selectedDate;
 			}
@@ -300,6 +297,10 @@
 		function refresh() {
 			$self.datepicker('refresh');
 			$self.datepicker('setDate', null); // clear the selected date
+			// reset datepicker options if maxSelectionRange to allow expected calendar availability
+			if(options.maxSelectionRange){
+				$self.datepicker('option',options.datepickerOptions);
+			}
 		}
 
 		function reset() {
