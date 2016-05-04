@@ -1,6 +1,6 @@
 /*!
  * jQuery UI date range picker widget
- * Copyright (c) 2016 Tamble, Inc.
+ * Copyright (c) 2015 Tamble, Inc.
  * Licensed under MIT (https://github.com/tamble/jquery-ui-daterangepicker/raw/master/LICENSE.txt)
  *
  * Depends:
@@ -21,19 +21,22 @@
 			// and must have the properties: text, dateStart, dateEnd.
 			// dateStart, dateEnd are functions returning a moment object
 			presetRanges: [
-				{text: 'Today', dateStart: function() { return moment() }, dateEnd: function() { return moment() } },
-				{text: 'Yesterday', dateStart: function() { return moment().subtract('days', 1) }, dateEnd: function() { return moment().subtract('days', 1) } },
-				{text: 'Last 7 Days', dateStart: function() { return moment().subtract('days', 6) }, dateEnd: function() { return moment() } },
-				{text: 'Last Week (Mo-Su)', dateStart: function() { return moment().subtract('days', 7).isoWeekday(1) }, dateEnd: function() { return moment().subtract('days', 7).isoWeekday(7) } },
-				{text: 'Month to Date', dateStart: function() { return moment().startOf('month') }, dateEnd: function() { return moment() } },
-				{text: 'Previous Month', dateStart: function() { return moment().subtract('month', 1).startOf('month') }, dateEnd: function() { return moment().subtract('month', 1).endOf('month') } },
-				{text: 'Year to Date', dateStart: function() { return moment().startOf('year') }, dateEnd: function() { return moment() } }
+				{text: 'Today', dateStart: function() { return options.moment() }, dateEnd: function() { return options.moment() } },
+				{text: 'Yesterday', dateStart: function() { return options.moment().subtract('days', 1) }, dateEnd: function() { return options.moment().subtract('days', 1) } },
+				{text: 'Last 7 Days', dateStart: function() { return options.moment().subtract('days', 6) }, dateEnd: function() { return options.moment() } },
+				{text: 'Last Week (Mo-Su)', dateStart: function() { return options.moment().subtract('days', 7).isoWeekday(1) }, dateEnd: function() { return options.moment().subtract('days', 7).isoWeekday(7) } },
+				{text: 'Month to Date', dateStart: function() { return options.moment().startOf('month') }, dateEnd: function() { return options.moment() } },
+				{text: 'Previous Month', dateStart: function() { return options.moment().subtract('month', 1).startOf('month') }, dateEnd: function() { return options.moment().subtract('month', 1).endOf('month') } },
+				{text: 'Year to Date', dateStart: function() { return options.moment().startOf('year') }, dateEnd: function() { return options.moment() } }
 			],
 			initialText: 'Select date range...', // placeholder text - shown when nothing is selected
 			icon: 'ui-icon-triangle-1-s',
 			applyButtonText: 'Apply', // use '' to get rid of the button
 			clearButtonText: 'Clear', // use '' to get rid of the button
 			cancelButtonText: 'Cancel', // use '' to get rid of the button
+			primaryButtonClass: 'ui-priority-primary', // special classes for apply button only
+			secondaryButtonClasses: 'ui-priority-secondary', // special classes for clear and cancel buttons
+			buttonClasses: '', // classes to use for all button panel buttons
 			rangeSplitter: ' - ', // string to use between dates
 			dateFormat: 'M d, yy', // displayed date format. Available formats: http://api.jqueryui.com/datepicker/#utility-formatDate
 			altFormat: 'yy-mm-dd', // submitted date format - inside JSON {"start":"...","end":"..."}
@@ -54,7 +57,9 @@
 				numberOfMonths: 3,
 //				showCurrentAtPos: 1 // bug; use maxDate instead
 				maxDate: 0 // the maximum selectable date is today (also current month is displayed on the last position)
-			}
+			},
+			maxSelectionRange: null,
+			moment: null
 		},
 
 		_create: function() {
@@ -204,6 +209,9 @@
 			range = {start: null, end: null}; // selected range
 
 		function init() {
+			if(!options.moment){
+				throw('daterangepicker: moment not provided during init, exiting.');
+			}
 			$self = $('<div></div>', {'class': classnameContext + '-calendar ui-widget-content'});
 
 			$self.datepicker($.extend({}, options.datepickerOptions, {beforeShowDay: beforeShowDay, onSelect: onSelectDay}));
@@ -222,10 +230,35 @@
 			if (!range.start || range.end) { // start not set, or both already set
 				range.start = selectedDate;
 				range.end = null;
+				if(options.maxSelectionRange){
+					// make available dates limited to maxSelectionRange
+					$self.datepicker('option',{
+						maxDate: options.moment(selectedDate).add(options.maxSelectionRange,'days').toDate(),
+						minDate: options.moment(selectedDate).subtract(options.maxSelectionRange,'days').toDate()
+					});
+				}
 			} else if (selectedDate < range.start) { // start set, but selected date is earlier
 				range.end = range.start;
+				if(options.maxSelectionRange){
+					if(options.moment(selectedDate).add(options.maxSelectionRange, 'days') < range.end ){
+						selectedDate = options.moment(range.end).subtract(options.maxSelectionRange,'days').toDate();
+					}
+					$self.datepicker('option',{
+						maxDate: null,
+						minDate: null
+					});
+				}
 				range.start = selectedDate;
 			} else {
+				if(options.maxSelectionRange){
+					if(options.moment(selectedDate).add(options.maxSelectionRange, 'days') > range.start ){
+						selectedDate = options.moment(range.start).add(options.maxSelectionRange,'days').toDate();
+					}
+					$self.datepicker('option',{
+						maxDate: null,
+						minDate: null
+					});
+				}
 				range.end = selectedDate;
 			}
 			if (options.datepickerOptions.hasOwnProperty('onSelect')) {
@@ -255,7 +288,7 @@
 			setTimeout(function() {
 				refresh();
 				updateAtMidnight();
-			}, moment().endOf('day') - moment());
+			}, options.moment().endOf('day') - options.moment());
 		}
 
 		function scrollToRangeStart() {
@@ -304,7 +337,7 @@
 				.addClass(classnameContext + '-buttonpanel');
 
 			if (options.applyButtonText) {
-				applyButton = $('<button type="button" class="ui-priority-primary"></button>')
+				applyButton = $('<button type="button" class="'+ options.primaryButtonClass +' '+ options.buttonClasses +'"></button>')
 					.text(options.applyButtonText)
 					.button();
 
@@ -312,7 +345,7 @@
 			}
 
 			if (options.clearButtonText) {
-				clearButton = $('<button type="button" class="ui-priority-secondary"></button>')
+				clearButton = $('<button type="button" class="'+ options.secondaryButtonClass +' '+ options.buttonClasses +'"></button>')
 					.text(options.clearButtonText)
 					.button();
 
@@ -320,7 +353,7 @@
 			}
 
 			if (options.cancelButtonText) {
-				cancelButton = $('<button type="button" class="ui-priority-secondary"></button>')
+				cancelButton = $('<button type="button" class="'+ options.secondaryButtonClass +' '+ options.buttonClasses +'"></button>')
 					.text(options.cancelButtonText)
 					.button();
 
