@@ -241,18 +241,12 @@
 				if(options.maxSelectionRange){
 					// make available dates limited to maxSelectionRange
 					$self.datepicker('option',{
-						minDate: options.moment(selectedDate).toDate(),
+						minDate: selectedDate,
 						maxDate: options.moment(selectedDate).add(rangeIncrement,rangeType).toDate()
 					});
 				}
 			} else if (selectedDate < range.start) { // start set, but selected date is earlier
 				range.end = range.start;
-				if(options.maxSelectionRange){
-					if(options.moment(selectedDate).add(options.maxSelectionRange, rangeType) < range.end ){
-						selectedDate = options.moment(range.end).subtract(rangeIncrement,rangeType).toDate();
-					}
-					$self.datepicker('option',options.datepickerOptions);
-				}
 				range.start = selectedDate;
 			} else {
 				if(options.maxSelectionRange){
