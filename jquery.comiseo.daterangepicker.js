@@ -57,6 +57,7 @@
 			// maxSelectionRange: limit number of sequential dates that can be selected in a given selection operation
 			// null by default, no action, or integer greater than 0, number of days (including start date) to limit.
 			maxSelectionRange: null,
+			maxSelectionType: 'days', // momentjs compatible math type. See http://momentjs.com/docs/#/manipulating/add/
 			datepickerOptions: { // object containing datepicker options. See http://api.jqueryui.com/datepicker/#options
 				numberOfMonths: 3,
 //				showCurrentAtPos: 1 // bug; use maxDate instead
@@ -228,9 +229,11 @@
 		function onSelectDay(dateText, instance) {
 			var dateFormat = options.datepickerOptions.dateFormat || $.datepicker._defaults.dateFormat,
 				selectedDate = $.datepicker.parseDate(dateFormat, dateText),
-				rangeIncrement = 0;
+				rangeIncrement = 0,
+				rangeType = '';
 				if(options.maxSelectionRange){
 					rangeIncrement = +options.maxSelectionRange-1;
+					rangeType = options.maxSelectionType;
 				}
 			if (!range.start || range.end) { // start not set, or both already set
 				range.start = selectedDate;
@@ -239,22 +242,22 @@
 					// make available dates limited to maxSelectionRange
 					$self.datepicker('option',{
 						minDate: options.moment(selectedDate).toDate(),
-						maxDate: options.moment(selectedDate).add(rangeIncrement,'days').toDate()
+						maxDate: options.moment(selectedDate).add(rangeIncrement,rangeType).toDate()
 					});
 				}
 			} else if (selectedDate < range.start) { // start set, but selected date is earlier
 				range.end = range.start;
 				if(options.maxSelectionRange){
-					if(options.moment(selectedDate).add(options.maxSelectionRange, 'days') < range.end ){
-						selectedDate = options.moment(range.end).subtract(rangeIncrement,'days').toDate();
+					if(options.moment(selectedDate).add(options.maxSelectionRange, rangeType) < range.end ){
+						selectedDate = options.moment(range.end).subtract(rangeIncrement,rangeType).toDate();
 					}
 					$self.datepicker('option',options.datepickerOptions);
 				}
 				range.start = selectedDate;
 			} else {
 				if(options.maxSelectionRange){
-					if(options.moment(selectedDate).add(options.maxSelectionRange, 'days') > range.start ){
-						selectedDate = options.moment(range.start).add(rangeIncrement,'days').toDate();
+					if(options.moment(selectedDate).add(options.maxSelectionRange, rangeType) > range.start ){
+						selectedDate = options.moment(range.start).add(rangeIncrement,rangeType).toDate();
 					}
 					$self.datepicker('option',options.datepickerOptions);
 				}
