@@ -1,6 +1,6 @@
 /*!
  * jQuery UI date range picker widget
- * Copyright (c) 2015 Tamble, Inc.
+ * Copyright (c) 2016 Tamble, Inc.
  * Licensed under MIT (https://github.com/tamble/jquery-ui-daterangepicker/raw/master/LICENSE.txt)
  *
  * Depends:
@@ -17,6 +17,7 @@
 		version: '0.5.0',
 
 		options: {
+			moment: null, // REQUIRED: to avoid global moment use, pass a moment object into the init object.
 			// presetRanges: array of objects; each object describes an item in the presets menu
 			// and must have the properties: text, dateStart, dateEnd.
 			// dateStart, dateEnd are functions returning a moment object
@@ -53,13 +54,12 @@
 			onClose: null, // @deprecated callback that executes when the dropdown closes
 			onChange: null, // @deprecated callback that executes when the date range changes
 			onClear: null, // @deprecated callback that executes when the clear button is used
+			maxSelectionRange: null, // limit number of sequential dates that can be selected in a given selection operation
 			datepickerOptions: { // object containing datepicker options. See http://api.jqueryui.com/datepicker/#options
 				numberOfMonths: 3,
 //				showCurrentAtPos: 1 // bug; use maxDate instead
 				maxDate: 0 // the maximum selectable date is today (also current month is displayed on the last position)
-			},
-			maxSelectionRange: null,
-			moment: null
+			}
 		},
 
 		_create: function() {
