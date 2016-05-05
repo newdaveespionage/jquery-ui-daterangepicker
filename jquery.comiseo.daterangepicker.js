@@ -293,10 +293,6 @@
 		function refresh() {
 			$self.datepicker('refresh');
 			$self.datepicker('setDate', null); // clear the selected date
-			// reset datepicker options if maxSelectionRange to allow expected calendar availability
-			if(options.maxSelectionRange){
-				$self.datepicker('option',options.datepickerOptions);
-			}
 		}
 
 		function reset() {
@@ -668,6 +664,10 @@
 			}
 			if (options.onOpen) {
 				options.onOpen();
+			}
+			// reset datepicker options if maxSelectionRange to allow expected calendar availability
+			if(options.maxSelectionRange){
+				calendar.enforceOptions();
 			}
 			instance._trigger('open', event, {instance: instance});
 		}
