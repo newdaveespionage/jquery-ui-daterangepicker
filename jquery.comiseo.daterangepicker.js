@@ -213,7 +213,8 @@
 
 		function init() {
 			if(!options.moment){
-				throw('daterangepicker: moment not provided during init, exiting.');
+				deprecated('global moment.js will not be supported in future releases, please add moment:[reference to moment] to your $().daterangepicker(); configuration object.');
+				options.moment = moment;
 			}
 			$self = $('<div></div>', {'class': classnameContext + '-calendar ui-widget-content'});
 
